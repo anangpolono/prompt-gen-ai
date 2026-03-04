@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptGen AI - AI Prompt Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:       #060a12;
+      --bg-surface:    #0d1524;
+      --bg-card:       #111827;
+      --bg-input:      #0d1524;
+      --border:        #1e293b;
+      --border-glow:   #0ea5e9;
+      --text-primary:  #f0f6ff;
+      --text-secondary:#94a3b8;
+      --text-muted:    #475569;
+      --accent:        #0ea5e9;
+      --accent-hover:  #38bdf8;
+      --accent-dim:    rgba(14,165,233,0.12);
+      --accent-dim2:   rgba(14,165,233,0.06);
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --warning:       #f59e0b;
+      --radius:        10px;
+      --radius-lg:     16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14,165,233,0.08) 0%, transparent 60%),
+        linear-gradient(rgba(14,165,233,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6,10,18,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-size: 18px; font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+    .logo-text span { color: var(--accent); }
+
+    .header-nav { display: flex; align-items: center; gap: 8px; }
+    .nav-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(14,165,233,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px; font-weight: 500;
+      color: var(--accent);
+    }
+    .pulse {
+      width: 6px; height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100%{ opacity:1; transform:scale(1); }
+      50%{ opacity:0.5; transform:scale(1.4); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 48px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(14,165,233,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px; font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+    .hero h1 .glow {
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── STEP GUIDE ── */
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 0 24px 48px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      flex: 1;
+    }
+    .step-circle {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+    .step.active .step-circle {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: 0 0 16px rgba(14,165,233,0.3);
+    }
+    .step.done .step-circle {
+      border-color: var(--success);
+      color: var(--success);
+      background: rgba(16,185,129,0.1);
+    }
+    .step-label {
+      font-size: 11px; font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .step.active .step-label { color: var(--accent); }
+    .step.done .step-label { color: var(--success); }
+    .step-line {
+      flex: 1; height: 2px;
+      background: var(--border);
+      position: relative;
+      top: -14px;
+    }
+    .step-line.done { background: var(--success); }
+
+    /* ── MAIN LAYOUT ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media(max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-icon {
+      width: 32px; height: 32px;
+      background: var(--accent-dim);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent);
+      font-size: 16px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .card-body { padding: 20px; }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      background: var(--accent-dim2);
+    }
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon {
+      font-size: 36px; margin-bottom: 12px;
+      display: block;
+    }
+    .upload-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .upload-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .upload-types {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .type-badge {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 10px; font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── PREVIEW ── */
+    .preview-wrap {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 16/9;
+      margin-top: 16px;
+      display: none;
+    }
+    .preview-wrap.visible { display: block; }
+    .preview-wrap img,
+    .preview-wrap video {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+    .preview-remove {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .preview-remove:hover { background: var(--danger); }
+    .preview-info {
+      display: none;
+      align-items: center; gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-surface);
+      border-radius: var(--radius);
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .preview-info.visible { display: flex; }
+
+    /* ── SETTINGS ── */
+    .setting-group { margin-bottom: 18px; }
+    .setting-group:last-child { margin-bottom: 0; }
+    .setting-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+    .chip-group {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .chip {
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      white-space: nowrap;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.active {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .checkbox-item input[type="checkbox"] { display: none; }
+    .checkbox-box {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      background: transparent;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .checkbox-item input:checked + .checkbox-box {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .checkbox-item input:checked + .checkbox-box::after {
+      content: '';
+      display: block;
+      width: 5px; height: 9px;
+      border: 2px solid #fff;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px,-1px);
+    }
+
+    select.styled {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    select.styled:focus { border-color: var(--accent); }
+
+    textarea.styled {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      outline: none;
+      resize: vertical;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.6;
+      min-height: 80px;
+      transition: border-color 0.2s;
+    }
+    textarea.styled:focus { border-color: var(--accent); }
+
+    .collapsible-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
+    }
+    .collapsible-header span {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .chevron {
+      color: var(--text-muted);
+      transition: transform 0.25s;
+      font-size: 12px;
+    }
+    .chevron.open { transform: rotate(180deg); }
+    .collapsible-body { display: none; padding-top: 10px; }
+    .collapsible-body.open { display: block; }
+
+    /* ── GENERATE BUTTON ── */
+    .btn-generate {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 20px;
+      letter-spacing: 0.3px;
+    }
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(14,165,233,0.35);
+    }
+    .btn-generate:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+
+    /* ── OUTPUT ── */
+    .output-section { margin-bottom: 16px; }
+    .output-label {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .output-label-text {
+      font-size: 11px; font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .output-label-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .output-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.7;
+      color: var(--text-primary);
+      position: relative;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 60px;
+    }
+    .copy-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn.copied { border-color: var(--success); color: var(--success); }
+
+    .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: var(--accent-dim);
+      border: 1px solid rgba(14,165,233,0.2);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px; font-weight: 500;
+    }
+
+    .action-row {
+      display: flex; gap: 8px;
+      margin-top: 16px;
+    }
+    .btn-outline {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── PLACEHOLDER STATE ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 20px; text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .empty-sub { font-size: 12px; line-height: 1.6; }
+
+    /* ── LOADING ── */
+    .loading-state {
+      display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 48px 20px; text-align: center;
+    }
+    .loading-state.visible { display: flex; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--text-secondary); }
+    .loading-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── HISTORY ── */
+    .history-section { margin-top: 24px; }
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+    .history-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .history-item:hover { border-color: var(--accent); background: var(--accent-dim2); }
+    .history-thumb {
+      width: 48px; height: 36px;
+      border-radius: 6px; overflow: hidden;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .history-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .history-meta { flex: 1; min-width: 0; }
+    .history-preview {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .history-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .history-badge {
+      background: var(--accent-dim);
+      border: 1px solid rgba(14,165,233,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px; font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: slideIn 0.25s ease;
+    }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── UTILS ── */
+    .hidden { display: none !important; }
+    .result-area { display: none; }
+    .result-area.visible { display: block; }
+
+    .divider {
+      height: 1px; background: var(--border);
+      margin: 16px 0;
+    }
+
+    .info-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--text-muted);
+      padding: 8px 0;
+    }
+    .info-row strong { color: var(--text-secondary); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">&#9889;</div>
+    <span class="logo-text">Prompt<span>Gen</span> AI</span>
+  </a>
+  <div class="header-nav">
+    <div class="nav-badge">
+      <div class="pulse"></div>
+      Claude Sonnet 4 — Active
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">&#10024; Powered by Multimodal AI Vision</div>
+  <h1>Generate AI Prompts dari<br><span class="glow">Gambar &amp; Video</span></h1>
+  <p>Upload gambar atau video, lalu AI akan menganalisis dan menghasilkan prompt yang sangat detail untuk Midjourney, DALL·E, Stable Diffusion, Sora, dan lainnya.</p>
+</section>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="step active" id="step1">
+    <div class="step-circle">1</div>
+    <div class="step-label">Upload Media</div>
+  </div>
+  <div class="step-line" id="line1"></div>
+  <div class="step" id="step2">
+    <div class="step-circle">2</div>
+    <div class="step-label">Konfigurasi</div>
+  </div>
+  <div class="step-line" id="line2"></div>
+  <div class="step" id="step3">
+    <div class="step-circle">3</div>
+    <div class="step-label">Generate</div>
+  </div>
+  <div class="step-line" id="line3"></div>
+  <div class="step" id="step4">
+    <div class="step-circle">4</div>
+    <div class="step-label">Salin Prompt</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+
+      <!-- UPLOAD CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">&#128247;</div>
+          <div>
+            <div class="card-title">Upload Media</div>
+            <div class="card-subtitle">Gambar (JPG, PNG, WEBP, GIF) atau Video (MP4, WEBM, MOV)</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" accept="image/*,video/*" />
+            <span class="upload-icon">&#128228;</span>
+            <div class="upload-title">Drag &amp; Drop atau Klik untuk Upload</div>
+            <div class="upload-sub">Maksimal ukuran file 20MB</div>
+            <div class="upload-types">
+              <span class="type-badge">JPG</span>
+              <span class="type-badge">PNG</span>
+              <span class="type-badge">WEBP</span>
+              <span class="type-badge">GIF</span>
+              <span class="type-badge">MP4</span>
+              <span class="type-badge">WEBM</span>
+              <span class="type-badge">MOV</span>
+            </div>
+          </div>
+
+          <div class="preview-wrap" id="previewWrap">
+            <img id="previewImg" src="" alt="Preview" style="display:none;" />
+            <video id="previewVid" controls style="display:none;"></video>
+            <button class="preview-remove" id="removeBtn">&#10005; Hapus</button>
+          </div>
+
+          <div class="preview-info" id="previewInfo">
+            <span id="fileIcon">&#128247;</span>
+            <span id="fileName" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <span id="fileSize" style="color:var(--text-muted); flex-shrink:0;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">&#9881;</div>
+          <div>
+            <div class="card-title">Konfigurasi Prompt</div>
+            <div class="card-subtitle">Sesuaikan gaya, target AI, dan elemen yang diinginkan</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Gaya Prompt -->
+          <div class="setting-group">
+            <div class="setting-label">&#127912; Gaya Prompt</div>
+            <div class="chip-group" id="styleGroup">
+              <button class="chip active" data-value="detail">Detail</button>
+              <button class="chip" data-value="ringkas">Ringkas</button>
+              <button class="chip" data-value="sinematik">Sinematik</button>
+              <button class="chip" data-value="teknikal">Teknikal</button>
+              <button class="chip" data-value="artistik">Artistik</button>
+            </div>
+          </div>
+
+          <!-- Target AI -->
+          <div class="setting-group">
+            <div class="setting-label">&#129302; Target AI</div>
+            <div class="chip-group" id="targetGroup">
+              <button class="chip active" data-value="Midjourney">Midjourney</button>
+              <button class="chip" data-value="DALL·E">DALL·E</button>
+              <button class="chip" data-value="Stable Diffusion">Stable Diffusion</button>
+              <button class="chip" data-value="Sora">Sora</button>
+              <button class="chip" data-value="Runway">Runway</button>
+            </div>
+          </div>
+
+          <!-- Bahasa -->
+          <div class="setting-group">
+            <div class="setting-label">&#127757; Bahasa Output</div>
+            <select class="styled" id="langSelect">
+              <option value="english">English (Recommended)</option>
+              <option value="indonesia">Bahasa Indonesia</option>
+            </select>
+          </div>
+
+          <!-- Elemen -->
+          <div class="setting-group">
+            <div class="setting-label">&#10024; Elemen yang Disertakan</div>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="chkNegative" checked />
+                <span class="checkbox-box"></span>
+                Negative Prompt
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="chkCamera" checked />
+                <span class="checkbox-box"></span>
+                Camera &amp; Lens Settings
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="chkLighting" checked />
+                <span class="checkbox-box"></span>
+                Lighting &amp; Atmosphere
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="chkMood" checked />
+                <span class="checkbox-box"></span>
+                Mood &amp; Tone
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="chkTags" checked />
+                <span class="checkbox-box"></span>
+                Hashtags / Tags
+              </label>
+            </div>
+          </div>
+
+          <!-- System Prompt -->
+          <div class="collapsible-header" id="sysPromptToggle">
+            <span>&#128218; System Prompt Kustom</span>
+            <span class="chevron" id="sysChevron">&#9660;</span>
+          </div>
+          <div class="collapsible-body" id="sysPromptBody">
+            <textarea class="styled" id="systemPrompt" rows="4">You are a professional AI prompt engineer. Analyze the provided image or video frame and generate an extremely detailed, accurate, and creative prompt. Focus on visual elements, composition, lighting, colors, textures, mood, and style. The prompt should be optimized for AI image/video generation tools.</textarea>
+          </div>
+
+          <button class="btn-generate" id="generateBtn" disabled>
+            <span id="generateIcon">&#9889;</span>
+            <span id="generateLabel">Generate Prompt</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+
+      <!-- OUTPUT CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">&#128196;</div>
+          <div>
+            <div class="card-title">Hasil Prompt AI</div>
+            <div class="card-subtitle">Prompt yang dihasilkan berdasarkan analisis media Anda</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">&#128196;</div>
+            <div class="empty-title">Belum Ada Prompt</div>
+            <div class="empty-sub">Upload gambar atau video, konfigurasikan pengaturan,<br>lalu klik "Generate Prompt"</div>
+          </div>
+
+          <!-- Loading state -->
+          <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <div class="loading-text">AI sedang menganalisis media Anda...</div>
+            <div class="loading-sub">Proses ini mungkin memerlukan beberapa detik</div>
+          </div>
+
+          <!-- Result area -->
+          <div class="result-area" id="resultArea">
+
+            <div class="output-section" id="mainPromptSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot"></span> Main Prompt</span>
+                <button class="copy-btn" onclick="copySection('mainPrompt')">&#128203; Salin</button>
+              </div>
+              <div class="output-box" id="mainPrompt"></div>
+            </div>
+
+            <div class="output-section hidden" id="negativeSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot" style="background:var(--danger)"></span> Negative Prompt</span>
+                <button class="copy-btn" onclick="copySection('negativePrompt')">&#128203; Salin</button>
+              </div>
+              <div class="output-box" id="negativePrompt"></div>
+            </div>
+
+            <div class="output-section hidden" id="cameraSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot" style="background:#a78bfa"></span> Camera &amp; Lens</span>
+                <button class="copy-btn" onclick="copySection('cameraPrompt')">&#128203; Salin</button>
+              </div>
+              <div class="output-box" id="cameraPrompt"></div>
+            </div>
+
+            <div class="output-section hidden" id="lightingSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot" style="background:var(--warning)"></span> Lighting &amp; Atmosphere</span>
+                <button class="copy-btn" onclick="copySection('lightingPrompt')">&#128203; Salin</button>
+              </div>
+              <div class="output-box" id="lightingPrompt"></div>
+            </div>
+
+            <div class="output-section hidden" id="moodSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot" style="background:var(--success)"></span> Mood &amp; Tone</span>
+                <button class="copy-btn" onclick="copySection('moodPrompt')">&#128203; Salin</button>
+              </div>
+              <div class="output-box" id="moodPrompt"></div>
+            </div>
+
+            <div class="output-section hidden" id="tagsSection">
+              <div class="output-label">
+                <span class="output-label-text"><span class="output-label-dot" style="background:var(--accent)"></span> Tags</span>
+                <button class="copy-btn" onclick="copySection('tagsPrompt')">&#128203; Salin</button>
+              </div>
+              <div class="tags-wrap" id="tagsWrap"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="action-row">
+              <button class="btn-outline" onclick="copyAll()">&#128203; Salin Semua</button>
+              <button class="btn-outline" onclick="downloadTxt()">&#11015; Download .txt</button>
+              <button class="btn-outline" onclick="regenerate()">&#8635; Regenerate</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY CARD -->
+      <div class="card history-section" id="historyCard" style="display:none;">
+        <div class="card-header">
+          <div class="card-icon">&#128336;</div>
+          <div>
+            <div class="card-title">Riwayat Generate</div>
+            <div class="card-subtitle">Klik untuk memuat kembali hasil sebelumnya</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- FOOTER -->
+<footer>
+  <p>Dibuat dengan &#10084; menggunakan <strong>Claude Sonnet 4</strong> multimodal vision &mdash; <a href="#">PromptGen AI</a></p>
+</footer>
+
+<script>
+  // ── STATE ──
+  const state = {
+    file: null,
+    base64: null,
+    fileType: null, // 'image' | 'video'
+    style: 'detail',
+    target: 'Midjourney',
+    result: null,
+    history: [],
+    generating: false
+  };
+
+  // ── ELEMENTS ──
+  const uploadZone    = document.getElementById('uploadZone');
+  const fileInput     = document.getElementById('fileInput');
+  const previewWrap   = document.getElementById('previewWrap');
+  const previewImg    = document.getElementById('previewImg');
+  const previewVid    = document.getElementById('previewVid');
+  const removeBtn     = document.getElementById('removeBtn');
+  const previewInfo   = document.getElementById('previewInfo');
+  const generateBtn   = document.getElementById('generateBtn');
+  const generateLabel = document.getElementById('generateLabel');
+  const generateIcon  = document.getElementById('generateIcon');
+  const emptyState    = document.getElementById('emptyState');
+  const loadingState  = document.getElementById('loadingState');
+  const resultArea    = document.getElementById('resultArea');
+
+  // ── CHIP GROUPS ──
+  function setupChipGroup(groupId, stateKey) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        state[stateKey] = chip.dataset.value;
+        updateSteps();
+      });
+    });
+  }
+  setupChipGroup('styleGroup', 'style');
+  setupChipGroup('targetGroup', 'target');
+
+  // ── COLLAPSIBLE ──
+  document.getElementById('sysPromptToggle').addEventListener('click', () => {
+    const body    = document.getElementById('sysPromptBody');
+    const chevron = document.getElementById('sysChevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  });
+
+  // ── DRAG & DROP ──
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer?.files;
+    if (files && files[0]) handleFile(files[0]);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  // ── HANDLE FILE ──
+  function handleFile(file) {
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) { showToast('File terlalu besar! Maksimal 20MB.', 'error'); return; }
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) { showToast('Format file tidak didukung!', 'error'); return; }
+
+    state.file     = file;
+    state.fileType = isImage ? 'image' : 'video';
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      state.base64 = e.target.result;
+      showPreview(e.target.result, isImage);
+      updateSteps();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function showPreview(src, isImage) {
+    previewWrap.classList.add('visible');
+    previewInfo.classList.add('visible');
+
+    if (isImage) {
+      previewImg.src = src;
+      previewImg.style.display = 'block';
+      previewVid.style.display = 'none';
+      document.getElementById('fileIcon').textContent = '\uD83D\uDDBC';
+    } else {
+      previewVid.src = src;
+      previewVid.style.display = 'block';
+      previewImg.style.display = 'none';
+      document.getElementById('fileIcon').textContent = '\uD83C\uDFA5';
+    }
+
+    document.getElementById('fileName').textContent = state.file.name;
+    document.getElementById('fileSize').textContent  = formatBytes(state.file.size);
+    generateBtn.disabled = false;
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1048576).toFixed(1) + ' MB';
+  }
+
+  // ── REMOVE FILE ──
+  removeBtn.addEventListener('click', () => {
+    state.file = null; state.base64 = null; state.fileType = null;
+    previewWrap.classList.remove('visible');
+    previewInfo.classList.remove('visible');
+    previewImg.src = ''; previewVid.src = '';
+    previewImg.style.display = 'none'; previewVid.style.display = 'none';
+    fileInput.value = '';
+    generateBtn.disabled = true;
+    updateSteps();
+  });
+
+  // ── STEP INDICATOR ──
+  function updateSteps() {
+    const hasFile   = !!state.file;
+    const hasResult = !!state.result;
+
+    setStep(1, hasFile   ? 'done'   : 'active');
+    setStep(2, hasFile   ? 'active' : '');
+    setStep(3, hasResult ? 'done'   : (hasFile ? 'active' : ''));
+    setStep(4, hasResult ? 'active' : '');
+    setLine(1, hasFile   ? 'done' : '');
+    setLine(2, hasResult ? 'done' : '');
+    setLine(3, hasResult ? 'done' : '');
+  }
+
+  function setStep(n, status) {
+    const el = document.getElementById('step' + n);
+    el.className = 'step ' + status;
+  }
+  function setLine(n, status) {
+    const el = document.getElementById('line' + n);
+    if (el) el.className = 'step-line ' + status;
+  }
+
+  // ── GENERATE ──
+  generateBtn.addEventListener('click', () => generate());
+
+  async function generate() {
+    if (!state.base64 || state.generating) return;
+    state.generating = true;
+
+    // UI: loading
+    generateBtn.disabled = true;
+    generateLabel.textContent = 'Menganalisis...';
+    generateIcon.textContent  = '\u23F3';
+    emptyState.style.display  = 'none';
+    loadingState.classList.add('visible');
+    resultArea.classList.remove('visible');
+
+    const lang      = document.getElementById('langSelect').value;
+    const sysPrompt = document.getElementById('systemPrompt').value;
+    const chkNeg    = document.getElementById('chkNegative').checked;
+    const chkCam    = document.getElementById('chkCamera').checked;
+    const chkLit    = document.getElementById('chkLighting').checked;
+    const chkMood   = document.getElementById('chkMood').checked;
+    const chkTags   = document.getElementById('chkTags').checked;
+
+    const styleMap = {
+      detail:    'extremely detailed and comprehensive',
+      ringkas:   'concise and punchy',
+      sinematik: 'cinematic and filmic',
+      teknikal:  'technically precise with specific parameters',
+      artistik:  'artistic and creative with emphasis on style'
+    };
+
+    const elements = [];
+    if (chkNeg)  elements.push('negative_prompt');
+    if (chkCam)  elements.push('camera_settings');
+    if (chkLit)  elements.push('lighting');
+    if (chkMood) elements.push('mood');
+    if (chkTags) elements.push('tags');
+
+    const userInstruction = `
+Analyze this ${state.fileType} and generate a ${styleMap[state.style]} prompt optimized for ${state.target}.
+Output language: ${lang === 'indonesia' ? 'Bahasa Indonesia' : 'English'}.
+
+Return ONLY a valid JSON object with these exact keys:
+{
+  "main_prompt": "the main positive prompt string",
+  ${chkNeg  ? '"negative_prompt": "things to avoid/exclude",' : ''}
+  ${chkCam  ? '"camera_settings": "lens, focal length, angle, depth of field",' : ''}
+  ${chkLit  ? '"lighting": "lighting setup, atmosphere, time of day",' : ''}
+  ${chkMood ? '"mood": "emotional tone, feeling, artistic style",' : ''}
+  ${chkTags ? '"tags": ["tag1","tag2","tag3"]' : ''}
+}
+Do not add any text outside the JSON object.
+    `.trim();
+
+    const messages = [
+      { role: 'system', content: sysPrompt },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: userInstruction },
+          { type: 'image_url', image_url: { url: state.base64 } }
+        ]
+      }
+    ];
+
+    try {
+      const res = await fetch('https://llm.blackbox.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer xxx',
+          'customerId': 'cus_TNGzdCxDaQbS4u'
+        },
+        body: JSON.stringify({
+          model: 'openrouter/claude-sonnet-4',
+          messages,
+          temperature: 0.7
+        })
+      });
+
+      if (!res.ok) throw new Error('API request failed: ' + res.status);
+      const data    = await res.json();
+      const rawText = data.choices?.[0]?.message?.content ?? '';
+
+      // Parse JSON from response
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Invalid JSON response from AI');
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      state.result = parsed;
+      renderResult(parsed, chkNeg, chkCam, chkLit, chkMood, chkTags);
+      addToHistory(parsed);
+      updateSteps();
+      showToast('Prompt berhasil dibuat!', 'success');
+
+    } catch (err) {
+      console.error(err);
+      emptyState.style.display = 'flex';
+      showToast('Gagal generate prompt: ' + err.message, 'error');
+    } finally {
+      loadingState.classList.remove('visible');
+      state.generating = false;
+      generateBtn.disabled = false;
+      generateLabel.textContent = 'Generate Prompt';
+      generateIcon.textContent  = '\u26A1';
+    }
+  }
+
+  // ── RENDER RESULT ──
+  function renderResult(data, chkNeg, chkCam, chkLit, chkMood, chkTags) {
+    document.getElementById('mainPrompt').textContent = data.main_prompt ?? '';
+
+    toggleSection('negativeSection',  chkNeg  && data.negative_prompt,  'negativePrompt',  data.negative_prompt);
+    toggleSection('cameraSection',    chkCam  && data.camera_settings,  'cameraPrompt',    data.camera_settings);
+    toggleSection('lightingSection',  chkLit  && data.lighting,         'lightingPrompt',  data.lighting);
+    toggleSection('moodSection',      chkMood && data.mood,             'moodPrompt',      data.mood);
+
+    const tagsSection = document.getElementById('tagsSection');
+    const tagsWrap    = document.getElementById('tagsWrap');
+    if (chkTags && data.tags && data.tags.length) {
+      tagsSection.classList.remove('hidden');
+      tagsWrap.innerHTML = data.tags.map(t =>
+        `<span class="tag">#${t.replace(/^#/, '')}</span>`
+      ).join('');
+    } else {
+      tagsSection.classList.add('hidden');
+    }
+
+    resultArea.classList.add('visible');
+  }
+
+  function toggleSection(sectionId, condition, fieldId, value) {
+    const section = document.getElementById(sectionId);
+    const field   = document.getElementById(fieldId);
+    if (condition && value) {
+      section.classList.remove('hidden');
+      field.textContent = value;
+    } else {
+      section.classList.add('hidden');
+    }
+  }
+
+  // ── HISTORY ──
+  function addToHistory(result) {
+    const entry = {
+      id:        Date.now(),
+      preview:   result.main_prompt?.slice(0, 80) + '...',
+      result,
+      thumb:     state.fileType === 'image' ? state.base64 : null,
+      time:      new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }),
+      target:    state.target
+    };
+    state.history.unshift(entry);
+    if (state.history.length > 10) state.history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const card = document.getElementById('historyCard');
+    const list = document.getElementById('historyList');
+    if (!state.history.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    list.innerHTML = state.history.map(h => `
+      <div class="history-item" onclick="loadHistory(${h.id})">
+        <div class="history-thumb">
+          ${h.thumb
+            ? `<img src="${h.thumb}" alt="history thumb" />`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;">&#127909;</div>`
+          }
+        </div>
+        <div class="history-meta">
+          <div class="history-preview">${h.preview}</div>
+          <div class="history-time">${h.time}</div>
+        </div>
+        <span class="history-badge">${h.target}</span>
+      </div>
+    `).join('');
+  }
+
+  function loadHistory(id) {
+    const entry = state.history.find(h => h.id === id);
+    if (!entry) return;
+    state.result = entry.result;
+    const chkNeg  = document.getElementById('chkNegative').checked;
+    const chkCam  = document.getElementById('chkCamera').checked;
+    const chkLit  = document.getElementById('chkLighting').checked;
+    const chkMood = document.getElementById('chkMood').checked;
+    const chkTags = document.getElementById('chkTags').checked;
+    emptyState.style.display = 'none';
+    renderResult(entry.result, chkNeg, chkCam, chkLit, chkMood, chkTags);
+    showToast('Prompt riwayat dimuat', 'success');
+  }
+
+  // ── COPY ──
+  function copySection(elementId) {
+    const el = document.getElementById(elementId);
+    const text = el?.textContent ?? '';
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Disalin ke clipboard!', 'success');
+    }).catch(() => fallbackCopy(text));
+  }
+
+  function copyAll() {
+    if (!state.result) return;
+    const parts = [];
+    if (state.result.main_prompt)    parts.push('MAIN PROMPT:\n' + state.result.main_prompt);
+    if (state.result.negative_prompt) parts.push('\nNEGATIVE PROMPT:\n' + state.result.negative_prompt);
+    if (state.result.camera_settings) parts.push('\nCAMERA SETTINGS:\n' + state.result.camera_settings);
+    if (state.result.lighting)        parts.push('\nLIGHTING:\n' + state.result.lighting);
+    if (state.result.mood)            parts.push('\nMOOD:\n' + state.result.mood);
+    if (state.result.tags?.length)    parts.push('\nTAGS:\n' + state.result.tags.map(t => '#'+t).join(' '));
+    navigator.clipboard.writeText(parts.join('\n')).then(() => {
+      showToast('Semua prompt disalin!', 'success');
+    }).catch(() => fallbackCopy(parts.join('\n')));
+  }
+
+  function downloadTxt() {
+    if (!state.result) return;
+    const parts = [];
+    if (state.result.main_prompt)     parts.push('MAIN PROMPT:\n' + state.result.main_prompt);
+    if (state.result.negative_prompt) parts.push('\nNEGATIVE PROMPT:\n' + state.result.negative_prompt);
+    if (state.result.camera_settings) parts.push('\nCAMERA SETTINGS:\n' + state.result.camera_settings);
+    if (state.result.lighting)        parts.push('\nLIGHTING:\n' + state.result.lighting);
+    if (state.result.mood)            parts.push('\nMOOD:\n' + state.result.mood);
+    if (state.result.tags?.length)    parts.push('\nTAGS:\n' + state.result.tags.map(t => '#'+t).join(' '));
+    const blob = new Blob([parts.join('\n')], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'prompt-' + Date.now() + '.txt';
+    a.click(); URL.revokeObjectURL(url);
+    showToast('File berhasil diunduh!', 'success');
+  }
+
+  function regenerate() { if (state.file) generate(); }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Disalin!', 'success');
+  }
+
+  // ── TOAST ──
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon  = type === 'success' ? '\u2714' : type === 'error' ? '\u2716' : '\u2139';
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; }, 2800);
+    setTimeout(() => toast.remove(), 3100);
+  }
+
+  // ── INIT ──
+  updateSteps();
+</script>
+</body>
+</html>
